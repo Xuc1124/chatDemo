@@ -17,7 +17,8 @@ io.on('connection',function(socket){
 			socket.nickname = nickname;
 			users.push(nickname);
 			socket.emit('loginSuccess');
-			io.socket.emit('system',nickname,users.length,'login');//向所连接到服务器的客户端发送当前登录用户的昵称
+			socket.broadcast.emit('system',nickname,users.length,'login');//向所连接到服务器的客户端发送当前登录用户的昵称
+			//io.socket.emit('...')会报错，此处用broadcast向除自己外的所有客户端广播system事件
 			console.log('loginSuccess');
 		}
 	});
@@ -25,5 +26,10 @@ io.on('connection',function(socket){
 	socket.on('disconnect',function(){
 		users.splice(socket.userIndex,1);
 		socket.broadcast.emit('system',socket.nickname,users.length,'logout');
-	})
+	});
+
+	//接收消息
+	socket.on("postMsg",function(msg){
+		socket.broadcast.emit('newMsg',socket.nickname,msg);
+	});
 })

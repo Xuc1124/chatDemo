@@ -35,11 +35,9 @@ Chat.prototype =  {
 		});
 
 		this.socket.on('system',function(nickName,userCount,type){
-			var msg = nickName+(type == 'login'?' joined':' left'),
-				p = document.createElement('p');
-				p.textContent = msg;
-				document.getElementById('historyMsg').appendChild(p);
-				document.getElementById('status').textContent = userCount+(userCount>1?'users':' user'+' online');
+			var msg = nickName+(type == 'login'?' joined':' left');
+			self._displayNewMsg('system ', msg, 'red');	
+			document.getElementById('status').textContent = userCount+(userCount>1?'users':' user'+' online');
 		});
 		
 		document.getElementById('loginBtn').addEventListener('click',function(){
@@ -50,5 +48,31 @@ Chat.prototype =  {
 				document.getElementById('nicknameInput').focus();
 			}
 		},false);
+
+		document.getElementById('sendBtn').addEventListener('click',function(){
+			var messageInput = document.getElementById('msgInput'),
+				msg = messageInput.value;
+			if(msg.trim().length !== 0){
+				messageInput.value = '';
+				messageInput.focus();
+				self.socket.emit('postMsg',msg);
+				self._displayNewMsg('me',msg);
+			}
+		},false);
+
+		this.socket.on('newMsg',function(user,msg){
+			self._displayNewMsg(user,msg);
+		})
+	},
+
+	//显示消息
+	_displayNewMsg: function(user,msg,color){
+		var container = document.getElementById('historyMsg'),
+			msgToDisplay = document.createElement('p'),
+			date = new Date().toLocaleTimeString();
+		msgToDisplay.style.color = color || '#000';
+		msgToDisplay.innerHTML = user + '<span class="timespan">('+date+'):</span>'+msg;
+		container.appendChild(msgToDisplay);
+		container.scrollTop = container.scrollHeight;
 	}
 };
